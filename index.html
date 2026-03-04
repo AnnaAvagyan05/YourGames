@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Search Platform</title>
+<style>
+  body { margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(120deg, #f0f4f8, #d9e2ec);}
+  .app-container { max-width:1200px; margin:0 auto; padding:40px 20px; text-align:center;}
+  h1 { font-size:2.8em; margin-bottom:20px; background: linear-gradient(90deg,#4facfe,#00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+  .search-bar, .category-select { padding:12px 15px; width:45%; max-width:220px; margin:0 5px 30px 5px; border-radius:25px; border:2px solid #4facfe; outline:none; font-size:1em; transition:0.3s;}
+  .search-bar:focus, .category-select:focus { border-color:#00f2fe; box-shadow:0 0 10px rgba(0,242,254,0.3);}
+  .games-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap:25px; }
+  .game-card { background: #fff; border-radius:15px; padding:15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; display:flex; flex-direction: column; align-items: center; }
+  .game-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.2);}
+  .game-card img { width:100%; border-radius:12px; margin-bottom:15px; transition: transform 0.3s; }
+  .game-card:hover img { transform: scale(1.05); }
+  .game-card h2 { font-size:1.5em; margin:10px 0; color:#1f3a93; }
+  .game-card p { font-size:0.95em; color:#555; margin-bottom:5px; }
+  .game-card .category { font-size:0.85em; font-weight:bold; color:#00aaff; margin-bottom:10px;}
+  .download-button { display:inline-block; padding:10px 20px; background: linear-gradient(90deg,#4facfe,#00f2fe); color:#fff; text-decoration:none; border-radius:25px; font-weight:bold; transition:0.3s; }
+  .download-button:hover { background: linear-gradient(90deg,#00f2fe,#4facfe); transform: scale(1.05);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script>
+const { useState } = React;
+
+// Generate 100 placeholder games with categories
+const categories = ["Adventure","Racing","Puzzle","RPG","Shooter","Strategy","Sports"];
+const gamesData = Array.from({length:100}, (_, i) => {
+  const cat = categories[i % categories.length];
+  return {
+    id: i+1,
+    name: `Game ${i+1}`,
+    description: `This is the description for Game ${i+1}, a fun ${cat.toLowerCase()} game.`,
+    category: cat,
+    image: `https://via.placeholder.com/300x160?text=Game+${i+1}`,
+    download: "#"
+  };
+});
+
+function SearchBar({ query, setQuery }) {
+  return React.createElement("input", { type:"text", placeholder:"Search games...", value:query, onInput:e=>setQuery(e.target.value), className:"search-bar"});
+}
+
+function CategoryFilter({ category, setCategory }) {
+  return React.createElement("select", {value:category, onChange:e=>setCategory(e.target.value), className:"category-select"},
+    React.createElement("option",{value:"All"},"All Categories"),
+    ...categories.map(c => React.createElement("option",{key:c,value:c},c))
+  );
+}
+
+function GameCard({ game }) {
+  return React.createElement("div", {className:"game-card"}, 
+    React.createElement("img",{src:game.image, alt:game.name}),
+    React.createElement("div",{className:"category"}, game.category),
+    React.createElement("h2", null, game.name),
+    React.createElement("p", null, game.description),
+    React.createElement("a",{href:game.download, className:"download-button"},"Download")
+  );
+}
+
+function App() {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All");
+
+  const filteredGames = gamesData.filter(game => {
+    const matchQuery = game.name.toLowerCase().includes(query.toLowerCase()) || game.description.toLowerCase().includes(query.toLowerCase());
+    const matchCategory = category === "All" || game.category === category;
+    return matchQuery && matchCategory;
+  });
+
+  return React.createElement("div",{className:"app-container"},
+    React.createElement("h1", null, "Game Search Platform"),
+    React.createElement("div", null,
+      React.createElement(SearchBar,{query,setQuery}),
+      React.createElement(CategoryFilter,{category,setCategory})
+    ),
+    React.createElement("div",{className:"games-grid"},
+      filteredGames.map(game => React.createElement(GameCard,{key:game.id, game}))
+    )
+  );
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(React.createElement(App));
+});
+</script>
+</body>
+</html>
